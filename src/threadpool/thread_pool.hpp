@@ -1,0 +1,40 @@
+#pragma once
+
+#include <vector>
+#include <thread>
+#include <atomic>
+#include "safe_queue.hpp"
+#include "task.hpp"
+
+namespace exchange {
+
+class BookRegistry;
+class WAL;
+
+class ThreadPool {
+public:
+    explicit ThreadPool(BookRegistry& registry, size_t num_threads = constants::DEFAULT_THREAD_POOL_SIZE, WAL* wal = nullptr);
+    ~ThreadPool();
+
+    // Prevent copying/moving
+    ThreadPool(const ThreadPool&) = delete;
+    ThreadPool& operator=(const ThreadPool&) = delete;
+
+    void start();
+    void shutdown();
+
+    // Submit a task to the pool
+    bool submit(Task task);
+
+private:
+    void worker_loop();
+
+    BookRegistry& registry_;
+    size_t num_threads_;
+    WAL* wal_ = nullptr;
+    std::vector<std::thread> workers_;
+    SafeQueue<Task> task_queue_;
+    std::atomic<bool> stop_{false};
+};
+
+} // namespace exchange

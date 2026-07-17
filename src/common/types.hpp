@@ -93,9 +93,11 @@ struct MatchResult {
     std::vector<ExecutionReport> execution_reports;
 };
 
+/*
 inline std::string to_string(Side side) {
     return side == Side::Buy ? "BUY" : "SELL";
 }
+*/
 
 inline std::string to_string(OrderStatus status) {
     switch (status) {

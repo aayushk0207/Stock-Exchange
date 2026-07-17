@@ -108,6 +108,15 @@ public:
         return req;
     }
 
+    // Convert from internal CancelRequest to NetCancel
+    static NetCancel to_net(const CancelRequest& req) {
+        NetCancel net;
+        net.order_id = req.order_id;
+        safe_strncpy(net.symbol, req.symbol, sizeof(net.symbol));
+        net.timestamp = req.timestamp;
+        return net;
+    }
+
     // Convert from NetModify to internal ModifyRequest
     static ModifyRequest from_net(const NetModify& net) {
         ModifyRequest req;
@@ -117,6 +126,17 @@ public:
         req.quantity = net.quantity;
         req.timestamp = net.timestamp;
         return req;
+    }
+
+    // Convert from internal ModifyRequest to NetModify
+    static NetModify to_net(const ModifyRequest& req) {
+        NetModify net;
+        net.order_id = req.order_id;
+        safe_strncpy(net.symbol, req.symbol, sizeof(net.symbol));
+        net.price = req.price;
+        net.quantity = req.quantity;
+        net.timestamp = req.timestamp;
+        return net;
     }
 
     // Convert from internal ExecutionReport to NetExecutionReport

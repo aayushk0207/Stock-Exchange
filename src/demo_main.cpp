@@ -12,6 +12,7 @@
 #include "engine/replay_engine.hpp"
 #include "engine/risk_checker.hpp"
 #include "pipeline/wal.hpp"
+#include "pipeline/execution_pipeline.hpp"
 #include <asio.hpp>
 #include <iostream>
 #include <thread>
@@ -87,12 +88,7 @@ public:
     }
 
     void send_modify(const ModifyRequest& req) {
-        NetModify net;
-        net.order_id = req.order_id;
-        BinarySerializer::safe_strncpy(net.symbol, req.symbol, sizeof(net.symbol));
-        net.price = req.price;
-        net.quantity = req.quantity;
-        net.timestamp = req.timestamp;
+        NetModify net = BinarySerializer::to_net(req);
 
         MsgHeader header;
         header.type = static_cast<uint16_t>(MsgType::Modify);
@@ -107,10 +103,7 @@ public:
     }
 
     void send_cancel(const CancelRequest& req) {
-        NetCancel net;
-        net.order_id = req.order_id;
-        BinarySerializer::safe_strncpy(net.symbol, req.symbol, sizeof(net.symbol));
-        net.timestamp = req.timestamp;
+        NetCancel net = BinarySerializer::to_net(req);
 
         MsgHeader header;
         header.type = static_cast<uint16_t>(MsgType::Cancel);
@@ -162,12 +155,15 @@ void run_interactive_demo() {
     // Silence internal logger details for clean checklist output
     exchange::Logger::get_instance().set_level(exchange::LogLevel::WARN);
 
-    // Start WAL & SPSC flush pipeline
+    // Start WAL & MPSC flush pipeline
     exchange::WAL wal(wal_path);
     wal.start();
 
-    // Start single-worker ThreadPool linked to WAL to avoid SPSC concurrent producer issues
-    exchange::ThreadPool pool(registry, 1, &wal);
+    exchange::ExecutionPipeline pipeline;
+    pipeline.start();
+
+    // Start multi-worker ThreadPool linked to WAL and ExecutionPipeline
+    exchange::ThreadPool pool(registry, 4, &wal, &pipeline);
     pool.start();
 
     // Start Gateway Server
@@ -193,7 +189,8 @@ void run_interactive_demo() {
 
     LOG_INFO("Starting Exchange Demo...\n\n"
              "✓ WAL pipeline started\n"
-             "✓ ThreadPool started (1 worker)\n"
+             "✓ ExecutionPipeline started\n"
+             "✓ ThreadPool started (4 workers)\n"
              "✓ Gateway listening on port 12345\n"
              "✓ Demo client connected\n");
 
@@ -259,13 +256,15 @@ void run_interactive_demo() {
     }
     pool.shutdown();
     wal.stop();
+    pipeline.stop();
 
     exchange::Logger::get_instance().set_level(exchange::LogLevel::INFO);
 
     LOG_INFO("Shutting down...\n\n"
              "✓ Client disconnected\n"
              "✓ ThreadPool stopped\n"
-             "✓ WAL stopped\n");
+             "✓ WAL stopped\n"
+             "✓ ExecutionPipeline stopped\n");
 
     // WAL Recovery Demo
     LOG_INFO("\n==============================\n"

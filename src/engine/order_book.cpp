@@ -259,12 +259,14 @@ std::optional<Order> OrderBook::queryOrder(OrderID order_id) const {
     return *(opt.value().position);
 }
 
+/*
 void OrderBook::clearBook() {
     std::lock_guard<std::mutex> lock(book_mutex_);
     bids_.clear();
     asks_.clear();
     order_index_.clear();
 }
+*/
 
 Price OrderBook::bestBid() const {
     std::lock_guard<std::mutex> lock(book_mutex_);
@@ -282,6 +284,7 @@ Price OrderBook::bestAsk() const {
     return asks_.begin()->first;
 }
 
+/*
 size_t OrderBook::totalOrders() const {
     std::lock_guard<std::mutex> lock(book_mutex_);
     return order_index_.size();
@@ -301,6 +304,7 @@ bool OrderBook::isEmpty() const {
     std::lock_guard<std::mutex> lock(book_mutex_);
     return bids_.empty() && asks_.empty();
 }
+*/
 
 void OrderBook::print_book() const {
     std::lock_guard<std::mutex> lock(book_mutex_);

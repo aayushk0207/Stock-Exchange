@@ -6,6 +6,7 @@ namespace exchange {
 
 BookRegistry::~BookRegistry() = default;
 
+/*
 bool BookRegistry::register_symbol(const Symbol& symbol) {
     std::lock_guard<std::mutex> lock(mutex_);
     if (books_.find(symbol) != books_.end()) {
@@ -17,6 +18,7 @@ bool BookRegistry::register_symbol(const Symbol& symbol) {
     LOG_INFO("Registered new symbol: " + symbol);
     return true;
 }
+*/
 
 OrderBook* BookRegistry::get_order_book(const Symbol& symbol) {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -29,9 +31,11 @@ OrderBook* BookRegistry::get_order_book(const Symbol& symbol) {
     return books_[symbol].get();
 }
 
+/*
 bool BookRegistry::has_symbol(const Symbol& symbol) const {
     std::lock_guard<std::mutex> lock(mutex_);
     return books_.find(symbol) != books_.end();
 }
+*/
 
 } // namespace exchange

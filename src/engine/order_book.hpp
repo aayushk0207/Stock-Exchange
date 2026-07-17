@@ -24,15 +24,15 @@ public:
     bool cancelOrder(OrderID order_id, MatchResult& result);
     bool modifyOrder(const ModifyRequest& request, MatchResult& result);
     std::optional<Order> queryOrder(OrderID order_id) const;
-    void clearBook();
+    // void clearBook();
 
     // Statistics getters
     Price bestBid() const;
     Price bestAsk() const;
-    size_t totalOrders() const;
-    size_t totalBidLevels() const;
-    size_t totalAskLevels() const;
-    bool isEmpty() const;
+    // size_t totalOrders() const;
+    // size_t totalBidLevels() const;
+    // size_t totalAskLevels() const;
+    // bool isEmpty() const;
     void print_book() const;
 
 private:

@@ -27,6 +27,7 @@ void WAL::start() {
 
 void WAL::stop() {
     if (running_.exchange(false)) {
+        queue_.close();
         if (flush_thread_.joinable()) {
             flush_thread_.join();
         }

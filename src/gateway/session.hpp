@@ -75,6 +75,7 @@ public:
 
             bool write_in_progress = !write_queue_.empty();
             write_queue_.push(std::move(buffer));
+            LOG_INFO("[SESSION] Async write queued");
 
             if (!write_in_progress) {
                 write_next();

@@ -5,11 +5,12 @@
 #include "../logger/logger.hpp"
 
 #include "../pipeline/wal.hpp"
+#include "../pipeline/execution_pipeline.hpp"
 
 namespace exchange {
 
-ThreadPool::ThreadPool(BookRegistry& registry, size_t num_threads, WAL* wal)
-    : registry_(registry), num_threads_(num_threads), wal_(wal) {}
+ThreadPool::ThreadPool(BookRegistry& registry, size_t num_threads, WAL* wal, ExecutionPipeline* pipeline)
+    : registry_(registry), num_threads_(num_threads), wal_(wal), pipeline_(pipeline) {}
 
 ThreadPool::~ThreadPool() {
     shutdown();
@@ -101,8 +102,28 @@ void ThreadPool::worker_loop() {
                 }
             }
 
-            // Invoke client callback with resulting fills/execution reports
-            if (task.callback) {
+            OrderID completed_order_id = 0;
+            if (task.type == Task::Type::Submit) {
+                completed_order_id = std::get<Order>(task.request).order_id;
+            } else if (task.type == Task::Type::Cancel) {
+                completed_order_id = std::get<CancelRequest>(task.request).order_id;
+            } else if (task.type == Task::Type::Modify) {
+                completed_order_id = std::get<ModifyRequest>(task.request).order_id;
+            }
+            LOG_INFO("[WORKER] Match complete for Order " + std::to_string(completed_order_id));
+
+            // Invoke client callback or publish results to ExecutionPipeline
+            if (pipeline_) {
+                if (!result.execution_reports.empty()) {
+                    LOG_INFO("[EXECUTION PIPELINE] Queued " + std::to_string(result.execution_reports.size()) + " execution reports");
+                }
+                for (const auto& report : result.execution_reports) {
+                    pipeline_->publish_execution_report(report);
+                }
+                for (const auto& fill : result.fills) {
+                    pipeline_->publish_trade(Trade{fill.trade_id, fill.symbol, fill.price, fill.quantity, fill.timestamp});
+                }
+            } else if (task.callback) {
                 task.callback(result);
             }
         } catch (const std::exception& e) {

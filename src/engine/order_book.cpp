@@ -8,8 +8,9 @@ namespace exchange {
 OrderBook::OrderBook(Symbol symbol)
     : symbol_(std::move(symbol)) {}
 
-MatchResult OrderBook::submitOrder(const Order& order) {
+MatchResult OrderBook::submitOrder(const Order& order, std::function<void()> log_func) {
     std::lock_guard<std::mutex> lock(book_mutex_);
+    if (log_func) log_func();
     MatchResult result;
     submitOrderInternal(order, result);
     return result;
@@ -147,8 +148,9 @@ void OrderBook::submitOrderInternal(const Order& order, MatchResult& result) {
     }
 }
 
-bool OrderBook::cancelOrder(OrderID order_id, MatchResult& result) {
+bool OrderBook::cancelOrder(OrderID order_id, MatchResult& result, std::function<void()> log_func) {
     std::lock_guard<std::mutex> lock(book_mutex_);
+    if (log_func) log_func();
     auto opt = order_index_.get(order_id);
     if (!opt.has_value()) {
         return false;
@@ -189,8 +191,9 @@ bool OrderBook::cancelOrder(OrderID order_id, MatchResult& result) {
     return true;
 }
 
-bool OrderBook::modifyOrder(const ModifyRequest& request, MatchResult& result) {
+bool OrderBook::modifyOrder(const ModifyRequest& request, MatchResult& result, std::function<void()> log_func) {
     std::lock_guard<std::mutex> lock(book_mutex_);
+    if (log_func) log_func();
     auto opt = order_index_.get(request.order_id);
     if (!opt.has_value()) {
         return false;

@@ -4,6 +4,7 @@
 #include <map>
 #include <list>
 #include <mutex>
+#include <functional>
 #include <optional>
 
 namespace exchange {
@@ -18,9 +19,9 @@ public:
 
     const Symbol& get_symbol() const { return symbol_; }
 
-    MatchResult submitOrder(const Order& order);
-    bool cancelOrder(OrderID order_id, MatchResult& result);
-    bool modifyOrder(const ModifyRequest& request, MatchResult& result);
+    MatchResult submitOrder(const Order& order, std::function<void()> log_func = nullptr);
+    bool cancelOrder(OrderID order_id, MatchResult& result, std::function<void()> log_func = nullptr);
+    bool modifyOrder(const ModifyRequest& request, MatchResult& result, std::function<void()> log_func = nullptr);
     std::optional<Order> queryOrder(OrderID order_id) const;
     Price bestBid() const;
     Price bestAsk() const;

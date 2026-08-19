@@ -73,25 +73,27 @@ void ThreadPool::worker_loop() {
             OrderBook* book = registry_.get_order_book(task.symbol);
             MatchResult result;
 
-            if (wal_) {
-                if (task.type == Task::Type::Submit) {
-                    wal_->log_order(std::get<Order>(task.request));
-                } else if (task.type == Task::Type::Cancel) {
-                    wal_->log_cancel(std::get<CancelRequest>(task.request));
-                } else if (task.type == Task::Type::Modify) {
-                    wal_->log_modify(std::get<ModifyRequest>(task.request));
+            auto log_action = [&]() {
+                if (wal_) {
+                    if (task.type == Task::Type::Submit) {
+                        wal_->log_order(std::get<Order>(task.request));
+                    } else if (task.type == Task::Type::Cancel) {
+                        wal_->log_cancel(std::get<CancelRequest>(task.request));
+                    } else if (task.type == Task::Type::Modify) {
+                        wal_->log_modify(std::get<ModifyRequest>(task.request));
+                    }
                 }
-            }
+            };
 
             if (task.type == Task::Type::Submit) {
                 const auto& order = std::get<Order>(task.request);
-                result = book->submitOrder(order);
+                result = book->submitOrder(order, log_action);
             } else if (task.type == Task::Type::Cancel) {
                 const auto& req = std::get<CancelRequest>(task.request);
-                book->cancelOrder(req.order_id, result);
+                book->cancelOrder(req.order_id, result, log_action);
             } else if (task.type == Task::Type::Modify) {
                 const auto& req = std::get<ModifyRequest>(task.request);
-                book->modifyOrder(req, result);
+                book->modifyOrder(req, result, log_action);
             }
 
             if (wal_) {

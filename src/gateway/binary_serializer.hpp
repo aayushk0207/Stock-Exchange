@@ -28,7 +28,6 @@ struct NetOrder {
     uint8_t type;
     uint64_t price;
     uint32_t quantity;
-    uint8_t tif;
     uint64_t timestamp;
 };
 
@@ -79,7 +78,6 @@ public:
         net.type = static_cast<uint8_t>(order.type);
         net.price = order.price;
         net.quantity = order.quantity;
-        net.tif = static_cast<uint8_t>(order.tif);
         net.timestamp = order.timestamp;
         return net;
     }
@@ -94,7 +92,6 @@ public:
         order.price = net.price;
         order.quantity = net.quantity;
         order.remaining_quantity = net.quantity;
-        order.tif = static_cast<TimeInForce>(net.tif);
         order.timestamp = net.timestamp;
         return order;
     }
@@ -157,4 +154,4 @@ public:
     }
 };
 
-} // namespace exchange
+}

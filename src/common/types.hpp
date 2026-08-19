@@ -7,14 +7,12 @@
 
 namespace exchange {
 
-// Type aliases for core domain concepts
-using Price = uint64_t;       // Fixed-point representation (e.g., cents or 4 decimal places)
+using Price = uint64_t;
 using Quantity = uint32_t;
 using OrderID = uint64_t;
 using Symbol = std::string;
-using Timestamp = uint64_t;   // Nanoseconds since epoch
+using Timestamp = uint64_t;
 
-// Represents an order submitted to the exchange
 struct Order {
     OrderID order_id{0};
     Symbol symbol;
@@ -23,34 +21,29 @@ struct Order {
     Price price{0};
     Quantity quantity{0};
     Quantity remaining_quantity{0};
-    TimeInForce tif{TimeInForce::GTC};
     Timestamp timestamp{0};
-    uint32_t client_id{0}; // Track originating client session
-
+    uint32_t client_id{0};
     bool is_filled() const {
         return remaining_quantity == 0;
     }
 };
 
-// Represents a request to cancel an active order
 struct CancelRequest {
     OrderID order_id{0};
     Symbol symbol;
     Timestamp timestamp{0};
-    uint32_t client_id{0}; // Originating client session
+    uint32_t client_id{0};
 };
 
-// Represents a request to modify an active order's price/quantity
 struct ModifyRequest {
     OrderID order_id{0};
     Symbol symbol;
     Price price{0};
     Quantity quantity{0};
     Timestamp timestamp{0};
-    uint32_t client_id{0}; // Originating client session
+    uint32_t client_id{0};
 };
 
-// Represents a trade execution/fill event
 struct Fill {
     uint64_t trade_id{0};
     OrderID buy_order_id{0};
@@ -61,7 +54,6 @@ struct Fill {
     Timestamp timestamp{0};
 };
 
-// Represents a public trade event broadcasted to all market data clients
 struct Trade {
     uint64_t trade_id{0};
     Symbol symbol;
@@ -70,7 +62,6 @@ struct Trade {
     Timestamp timestamp{0};
 };
 
-// Represents an execution report sent to the client gateway
 struct ExecutionReport {
     OrderID order_id{0};
     Symbol symbol;
@@ -83,21 +74,14 @@ struct ExecutionReport {
     Price last_px{0};
     Timestamp timestamp{0};
     std::string reject_reason;
-    uint32_t client_id{0}; // Destination client session
+    uint32_t client_id{0};
 };
 
-// Represents the result of an order match attempt in the order book
 struct MatchResult {
     OrderStatus status{OrderStatus::New};
     std::vector<Fill> fills;
     std::vector<ExecutionReport> execution_reports;
 };
-
-/*
-inline std::string to_string(Side side) {
-    return side == Side::Buy ? "BUY" : "SELL";
-}
-*/
 
 inline std::string to_string(OrderStatus status) {
     switch (status) {
@@ -110,4 +94,4 @@ inline std::string to_string(OrderStatus status) {
     return "UNKNOWN";
 }
 
-} // namespace exchange
+}

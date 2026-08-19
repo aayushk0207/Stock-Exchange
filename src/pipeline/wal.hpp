@@ -12,17 +12,15 @@ namespace exchange {
 
 class WAL {
 public:
-    explicit WAL(const std::string& log_filepath);
+    WAL(const std::string& log_filepath);
     ~WAL();
 
-    // Prevent copying
     WAL(const WAL&) = delete;
     WAL& operator=(const WAL&) = delete;
 
     void start();
     void stop();
 
-    // High-performance asynchronous non-blocking log operations using MPSC queue
     void log_order(const Order& order);
     void log_cancel(const CancelRequest& req);
     void log_modify(const ModifyRequest& req);
@@ -38,4 +36,4 @@ private:
     std::thread flush_thread_;
 };
 
-} // namespace exchange
+}

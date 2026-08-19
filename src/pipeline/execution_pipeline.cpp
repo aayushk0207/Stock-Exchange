@@ -31,14 +31,14 @@ void ExecutionPipeline::stop() {
 
 void ExecutionPipeline::publish_execution_report(const ExecutionReport& report) {
     if (!running_) return;
-    while (running_ && !report_queue_.write(report)) {
+    while (running_ && !report_queue_.enqueue(report)) {
         std::this_thread::yield();
     }
 }
 
 void ExecutionPipeline::publish_trade(const Trade& trade) {
     if (!running_) return;
-    while (running_ && !trade_queue_.write(trade)) {
+    while (running_ && !trade_queue_.enqueue(trade)) {
         std::this_thread::yield();
     }
 }
@@ -47,7 +47,7 @@ void ExecutionPipeline::dispatch_loop() {
     while (running_ || !report_queue_.empty() || !trade_queue_.empty()) {
         bool idle = true;
         
-        auto report_opt = report_queue_.read();
+        auto report_opt = report_queue_.dequeue();
         if (report_opt.has_value()) {
             const auto& report = report_opt.value();
             auto session = ConnectionManager::get_instance().get_session(report.client_id);
@@ -58,16 +58,15 @@ void ExecutionPipeline::dispatch_loop() {
             idle = false;
         }
 
-        auto trade_opt = trade_queue_.read();
+        auto trade_opt = trade_queue_.dequeue();
         if (trade_opt.has_value()) {
-            // Asynchronously consumed trade event.
             idle = false;
         }
 
         if (idle) {
-            std::this_thread::sleep_for(std::chrono::microseconds(100)); // Avoid spinning CPU when idle
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
         }
     }
 }
 
-} // namespace exchange
+}

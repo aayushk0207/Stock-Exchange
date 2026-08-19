@@ -177,16 +177,6 @@ private:
             return;
         }
 
-        // Attach routing callback
-        task.callback = [](const MatchResult& result) {
-            for (const auto& report : result.execution_reports) {
-                auto session = ConnectionManager::get_instance().get_session(report.client_id);
-                if (session) {
-                    session->send_execution_report(report);
-                }
-            }
-        };
-
         // Submit unit of work to thread pool
         pool_.submit(task);
     }
@@ -217,4 +207,4 @@ private:
     std::queue<std::vector<char>> write_queue_;
 };
 
-} // namespace exchange
+}

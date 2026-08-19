@@ -19,7 +19,6 @@ std::string format_timestamp(Timestamp ts) {
 
     std::tm time_info;
 #if defined(_MSC_VER) || defined(__MINGW32__)
-    // Thread-safe time conversion on Windows
     localtime_s(&time_info, &secs);
 #else
     localtime_r(&secs, &time_info);
@@ -31,5 +30,5 @@ std::string format_timestamp(Timestamp ts) {
     return oss.str();
 }
 
-} // namespace time_utils
-} // namespace exchange
+}
+}

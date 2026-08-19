@@ -12,17 +12,13 @@ public:
     ExecutionPipeline();
     ~ExecutionPipeline();
 
-    // Prevent copying
     ExecutionPipeline(const ExecutionPipeline&) = delete;
     ExecutionPipeline& operator=(const ExecutionPipeline&) = delete;
 
     void start();
     void stop();
 
-    // Publish execution reports asynchronously using lock-free MPSC queue
     void publish_execution_report(const ExecutionReport& report);
-    
-    // Publish trade events asynchronously using lock-free MPSC queue
     void publish_trade(const Trade& trade);
 
 private:
@@ -34,4 +30,4 @@ private:
     std::thread dispatch_thread_;
 };
 
-} // namespace exchange
+}

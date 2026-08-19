@@ -13,7 +13,6 @@ WAL::~WAL() {
 void WAL::start() {
     if (running_) return;
 
-    // Open file in append binary mode
     file_stream_.open(filepath_, std::ios::binary | std::ios::out | std::ios::app);
     if (!file_stream_.is_open()) {
         LOG_ERROR("Failed to open WAL file: " + filepath_);
@@ -46,9 +45,8 @@ void WAL::log_order(const Order& order) {
     entry.type = static_cast<uint8_t>(WALEventType::Submit);
     entry.data.order = BinarySerializer::to_net(order);
 
-    // High performance push to lock-free SPSC queue
-    while (running_ && !queue_.write(entry)) {
-        std::this_thread::yield(); // Block if full (rare for configured size)
+    while (running_ && !queue_.enqueue(entry)) {
+        std::this_thread::yield();
     }
 }
 
@@ -61,7 +59,7 @@ void WAL::log_cancel(const CancelRequest& req) {
     BinarySerializer::safe_strncpy(entry.data.cancel.symbol, req.symbol, sizeof(entry.data.cancel.symbol));
     entry.data.cancel.timestamp = req.timestamp;
 
-    while (running_ && !queue_.write(entry)) {
+    while (running_ && !queue_.enqueue(entry)) {
         std::this_thread::yield();
     }
 }
@@ -77,7 +75,7 @@ void WAL::log_modify(const ModifyRequest& req) {
     entry.data.modify.quantity = req.quantity;
     entry.data.modify.timestamp = req.timestamp;
 
-    while (running_ && !queue_.write(entry)) {
+    while (running_ && !queue_.enqueue(entry)) {
         std::this_thread::yield();
     }
 }
@@ -95,21 +93,21 @@ void WAL::log_fill(const Fill& fill) {
     entry.data.fill.quantity = fill.quantity;
     entry.data.fill.timestamp = fill.timestamp;
 
-    while (running_ && !queue_.write(entry)) {
+    while (running_ && !queue_.enqueue(entry)) {
         std::this_thread::yield();
     }
 }
 
 void WAL::flush_loop() {
     while (running_ || !queue_.empty()) {
-        auto entry_opt = queue_.read();
+        auto entry_opt = queue_.dequeue();
         if (entry_opt.has_value()) {
             file_stream_.write(reinterpret_cast<const char*>(&entry_opt.value()), sizeof(WALEntry));
-            file_stream_.flush(); // Ensure durability on disk immediately
+            file_stream_.flush();
         } else {
-            std::this_thread::sleep_for(std::chrono::microseconds(100)); // Avoid spinning CPU
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
         }
     }
 }
 
-} // namespace exchange
+}

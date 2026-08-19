@@ -18,11 +18,11 @@ public:
         close();
     }
 
-    // Bounded thread-safe enqueue. Blocks if queue is full.
-    // Returns false if queue was closed during wait or is already closed.
     bool enqueue(T item) {
         std::unique_lock<std::mutex> lock(mutex_);
-        cond_push_.wait(lock, [this]() { return queue_.size() < max_capacity_ || shutdown_; });
+        while (queue_.size() >= max_capacity_ && !shutdown_) {
+            cond_push_.wait(lock);
+        }
 
         if (shutdown_) {
             return false;
@@ -33,11 +33,11 @@ public:
         return true;
     }
 
-    // Blocking dequeue. Blocks if queue is empty.
-    // Returns std::nullopt if queue is closed and empty.
     std::optional<T> dequeue() {
         std::unique_lock<std::mutex> lock(mutex_);
-        cond_pop_.wait(lock, [this]() { return !queue_.empty() || shutdown_; });
+        while (queue_.empty() && !shutdown_) {
+            cond_pop_.wait(lock);
+        }
 
         if (queue_.empty() && shutdown_) {
             return std::nullopt;
@@ -49,7 +49,6 @@ public:
         return item;
     }
 
-    // Close the queue and wake up all waiting threads
     void close() {
         {
             std::lock_guard<std::mutex> lock(mutex_);
@@ -79,4 +78,4 @@ private:
     std::condition_variable cond_push_;
 };
 
-} // namespace exchange
+}

@@ -7,13 +7,6 @@
 *.dll
 *.pdb
 
-# CMake
-build/
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-Makefile
-compile_commands.json
 
 # VSCode
 .vscode/
@@ -28,3 +21,8 @@ Thumbs.db
 
 # Archive
 archive/
+
+# Load Testing Infrastructure
+scratch/load_test_main.cpp
+run_load_test.bat
+load_test_results.txt

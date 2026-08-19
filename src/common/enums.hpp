@@ -14,11 +14,6 @@ enum class OrderType : uint8_t {
     Market
 };
 
-enum class TimeInForce : uint8_t {
-    GTC,  // Good 'Till Cancelled
-    IOC,  // Immediate Or Cancel
-    FOK   // Fill Or Kill
-};
 
 enum class OrderStatus : uint8_t {
     New,
@@ -28,4 +23,4 @@ enum class OrderStatus : uint8_t {
     Rejected
 };
 
-} // namespace exchange
+}

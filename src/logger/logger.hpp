@@ -4,7 +4,9 @@
 #include <mutex>
 #include <iostream>
 #include <sstream>
+#include <atomic>
 #include "../common/time_utils.hpp"
+
 
 namespace exchange {
 
@@ -43,7 +45,7 @@ private:
     Logger() = default;
     ~Logger() = default;
 
-    LogLevel level_{LogLevel::INFO};
+    std::atomic<LogLevel> level_{LogLevel::INFO};
     mutable std::mutex mutex_;
 };
 
@@ -53,4 +55,4 @@ private:
 #define LOG_WARN(msg)  ::exchange::Logger::get_instance().warn(msg)
 #define LOG_ERROR(msg) ::exchange::Logger::get_instance().error(msg)
 
-} // namespace exchange
+}

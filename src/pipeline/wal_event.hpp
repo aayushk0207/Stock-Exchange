@@ -24,7 +24,7 @@ struct NetFill {
 };
 
 struct WALEntry {
-    uint8_t type; // WALEventType
+    uint8_t type;
     union {
         NetOrder order;
         NetCancel cancel;
@@ -34,4 +34,4 @@ struct WALEntry {
 };
 #pragma pack(pop)
 
-} // namespace exchange
+}

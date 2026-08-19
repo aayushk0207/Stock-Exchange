@@ -8,18 +8,19 @@ Logger& Logger::get_instance() {
 }
 
 void Logger::set_level(LogLevel level) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    level_ = level;
+    level_.store(level, std::memory_order_relaxed);
 }
 
 LogLevel Logger::get_level() const {
-    std::lock_guard<std::mutex> lock(mutex_);
-    return level_;
+    return level_.load(std::memory_order_relaxed);
 }
 
 void Logger::log(LogLevel level, const std::string& message) {
+    if (level < level_.load(std::memory_order_relaxed)) {
+        return;
+    }
     std::lock_guard<std::mutex> lock(mutex_);
-    if (level < level_) {
+    if (level < level_.load(std::memory_order_relaxed)) {
         return;
     }
 
@@ -36,4 +37,4 @@ void Logger::log(LogLevel level, const std::string& message) {
     std::cout << "[" << time_str << "] [" << level_str << "] " << message << std::endl;
 }
 
-} // namespace exchange
+}

@@ -11,13 +11,11 @@ namespace exchange {
 bool ReplayEngine::replay(const std::string& log_filepath, BookRegistry& registry) {
     std::ifstream file(log_filepath, std::ios::binary | std::ios::in);
     if (!file.is_open()) {
-        LOG_WARN("ReplayEngine: Could not open WAL file for reading: " + log_filepath);
+        LOG_WARN("ReplayEngine: Could not open WAL file: " + log_filepath);
         return false;
     }
 
-    LOG_INFO("ReplayEngine: Starting state recovery from WAL log: " + log_filepath);
-
-    // Reset TradeIDGenerator so regenerated match trade IDs match original progression
+    LOG_INFO("ReplayEngine: Replaying WAL log file: " + log_filepath);
     TradeIDGenerator::get_instance().reset(1);
 
     WALEntry entry;
@@ -45,16 +43,11 @@ bool ReplayEngine::replay(const std::string& log_filepath, BookRegistry& registr
             MatchResult res;
             book->modifyOrder(req, res);
             replayed_count++;
-        } 
-        else if (type == WALEventType::Fill) {
-            // Fill events are stored for transaction auditing/downstream logging.
-            // Replaying Submits/Cancels/Modifies natively reproduces the exact matches
-            // in the OrderBook state. So we skip manual fill execution during replay.
         }
     }
 
-    LOG_INFO("ReplayEngine: Recovery complete. Replayed " + std::to_string(replayed_count) + " state-changing events.");
+    LOG_INFO("ReplayEngine: Recovery complete (" + std::to_string(replayed_count) + " events).");
     return true;
 }
 
-} // namespace exchange
+}

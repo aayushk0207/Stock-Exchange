@@ -14,17 +14,15 @@ class ExecutionPipeline;
 
 class ThreadPool {
 public:
-    explicit ThreadPool(BookRegistry& registry, size_t num_threads = constants::DEFAULT_THREAD_POOL_SIZE, WAL* wal = nullptr, ExecutionPipeline* pipeline = nullptr);
+    ThreadPool(BookRegistry& registry, size_t num_threads = constants::DEFAULT_THREAD_POOL_SIZE, WAL* wal = nullptr, ExecutionPipeline* pipeline = nullptr);
     ~ThreadPool();
 
-    // Prevent copying/moving
     ThreadPool(const ThreadPool&) = delete;
     ThreadPool& operator=(const ThreadPool&) = delete;
 
     void start();
     void shutdown();
 
-    // Submit a task to the pool
     bool submit(Task task);
 
 private:
@@ -39,4 +37,4 @@ private:
     std::atomic<bool> stop_{false};
 };
 
-} // namespace exchange
+}

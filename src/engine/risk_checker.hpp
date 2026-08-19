@@ -17,13 +17,8 @@ public:
     RiskChecker(const RiskChecker&) = delete;
     RiskChecker& operator=(const RiskChecker&) = delete;
 
-    // Set allowable symbols for validation
     void register_symbol(const Symbol& symbol);
-
-    // Core validation function
     bool validate_order(const Order& order, std::string& reject_reason);
-
-    // Reset state (useful for test isolation)
     void reset();
 
 private:
@@ -35,4 +30,4 @@ private:
     mutable std::mutex mutex_;
 };
 
-} // namespace exchange
+}
